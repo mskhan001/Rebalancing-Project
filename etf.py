@@ -8,12 +8,12 @@ from pgx_pgf import getETFWebsiteData as get_PGX_PGF_WebsiteData
 from psk import getETFWebsiteData as get_PSK_WebsiteData
 
 etf_function_mapping = {
-    # "PFF" : get_PFF_WebsiteData,
-    # "PFFD": get_PFFD_PFFV_WebsiteData,
-    # "PFFV": get_PFFD_PFFV_WebsiteData,
+    "PFF" : get_PFF_WebsiteData,
+    "PFFD": get_PFFD_PFFV_WebsiteData,
+    "PFFV": get_PFFD_PFFV_WebsiteData,
     "PGX" : get_PGX_PGF_WebsiteData,
-    # "PGF" : get_PGX_PGF_WebsiteData,
-    # "PSK" : get_PSK_WebsiteData
+    "PGF" : get_PGX_PGF_WebsiteData,
+    "PSK" : get_PSK_WebsiteData
 }
 
 def getTickerDatabase():
