@@ -8,12 +8,12 @@ from pgx_pgf import getETFWebsiteData as get_PGX_PGF_WebsiteData
 from psk import getETFWebsiteData as get_PSK_WebsiteData
 
 etf_function_mapping = {
-    "PFF" : get_PFF_WebsiteData,
-    "PFFD": get_PFFD_PFFV_WebsiteData,
-    "PFFV": get_PFFD_PFFV_WebsiteData,
+    # "PFF" : get_PFF_WebsiteData,
+    # "PFFD": get_PFFD_PFFV_WebsiteData,
+    # "PFFV": get_PFFD_PFFV_WebsiteData,
     "PGX" : get_PGX_PGF_WebsiteData,
-    "PGF" : get_PGX_PGF_WebsiteData,
-    "PSK" : get_PSK_WebsiteData
+    # "PGF" : get_PGX_PGF_WebsiteData,
+    # "PSK" : get_PSK_WebsiteData
 }
 
 def getTickerDatabase():
@@ -62,6 +62,12 @@ def getOutputDF(etf_currentHoldings, projected_universe_df, tickerDatabase_df, e
 
     etf_df.fillna(0, inplace=True)
     
+    # getting data from old DF
+    old_df = pd.read_excel('Old/{} ETF vs ICE.xlsx'.format(etf_name))
+    old_df.rename(columns={'Current {} Shares'.format(etf_name) : 'Yesterdays {} Shares'.format(etf_name)}, inplace=True)
+    etf_df =  etf_df.merge(old_df[['ISIN', 'Yesterdays {} Shares'.format(etf_name)]], left_on='ISIN', right_on="ISIN", how="outer")
+    etf_df['Difference from Yesterday'] = etf_df['Yesterdays {} Shares'.format(etf_name)] - etf_df['Current {} Shares'.format(etf_name)]
+
     etf_df['Projected {} Shares'.format(etf_name)] = etf_df.apply(lambda x: getProjectedShares(x, etf_name), axis=1)
     etf_df['Difference'] = etf_df.apply(lambda x: getDifference(x, etf_name), axis=1)
     etf_df.sort_values(by='Difference', key=abs, ascending=False, inplace=True)
@@ -83,14 +89,15 @@ def writeToFile(etf_df, etf_name):
     outputFile = 'Output/ETF/{} ETF vs ICE.xlsx'.format(etf_name)
     
     with pd.ExcelWriter(outputFile, mode="w", engine='xlsxwriter') as writer:
-        etf_df.to_excel(writer, sheet_name=etf_name, columns=['ISIN', 'Ticker', 'Last Price', 'Projected % Mkt Cap', 'Current {} Shares'.format(etf_name), 'Projected {} Shares'.format(etf_name), 'Difference'])
+        etf_df.to_excel(writer, sheet_name=etf_name, columns=['ISIN', 'Ticker', 'Last Price','Yesterdays {} Shares'.format(etf_name) ,'Current {} Shares'.format(etf_name),'Difference from Yesterday' ,'Projected % Mkt Cap','Projected {} Shares'.format(etf_name), 'Difference'])
         
         # Formatting
         workbook = writer.book
         worksheet = writer.sheets[etf_name]
 
         cellFormat = workbook.add_format({'num_format': '#,##0'})
-        worksheet.set_column('F:H', 10, cellFormat)
+        worksheet.set_column('E:G', 10, cellFormat)
+        worksheet.set_column('I:J', 10, cellFormat)
 
 def main():
     for etf_name in etf_function_mapping.keys():
